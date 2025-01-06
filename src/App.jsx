@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import moveSoundFile from "./assets/sound/move.mp3";
 import winSoundFile from "./assets/sound/winSound.wav";
 import drawSoundFile from "./assets/sound/matchDraw.mp3";
+import backgroundMusicFile from "./assets/sound/bgSound.mp3"; 
 
 const App = () => {
   const [boxes, setBoxes] = useState(Array(9).fill(""));
@@ -9,6 +10,7 @@ const App = () => {
   const [winner, setWinner] = useState(null);
   const [isDraw, setIsDraw] = useState(false);
   const [level, setLevel] = useState(1);
+  const [hasStarted, setHasStarted] = useState(false); // Track if user has started the game
 
   const winPatterns = [
     [0, 1, 2],
@@ -24,6 +26,21 @@ const App = () => {
   const moveSound = new Audio(moveSoundFile);
   const winSound = new Audio(winSoundFile);
   const drawSound = new Audio(drawSoundFile);
+  const backgroundMusic = new Audio(backgroundMusicFile);
+
+  // Set background music to loop and play until user clicks a box
+  useEffect(() => {
+    if (!hasStarted) {
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0.1;
+      backgroundMusic.play();
+    } else {
+      backgroundMusic.pause(); // Stop the background music once the user starts playing
+    }
+    return () => {
+      backgroundMusic.pause(); // Stop the music when the component unmounts
+    };
+  }, [hasStarted]);
 
   // Save game state to localStorage
   const saveGameState = () => {
@@ -63,16 +80,19 @@ const App = () => {
     setTurnO(true);
     setWinner(null);
     setIsDraw(false);
-    setLevel(1);
-    localStorage.removeItem("ticTacToeGameState");
   };
 
   const nextLevel = () => {
-    setLevel(level + 1);
-    setBoxes(Array(9).fill(""));
-    setTurnO(true);
-    setWinner(null);
-    setIsDraw(false);
+    if (level < 10) {
+      setLevel(level + 1);
+      resetGame();
+    }
+  };
+
+  const retryGame = () => {
+    resetGame();
+    setIsDraw(false); // Ensuring that the draw state is cleared
+    setWinner(null); // Ensuring that the winner state is cleared
   };
 
   const handleBoxClick = (index) => {
@@ -85,6 +105,9 @@ const App = () => {
     moveSound.play();
     checkWinner(newBoxes);
     setTurnO(false);
+
+    // Mark game as started once user clicks a box
+    if (!hasStarted) setHasStarted(true);
 
     // Allow AI move only if no winner or draw yet
     if (!winner && !isDraw) {
@@ -166,6 +189,14 @@ const App = () => {
             className="px-4 py-2 bg-green-800 text-white rounded-lg shadow-lg hover:bg-green-700"
           >
             Next Level
+          </button>
+        )}
+        {(isDraw || winner === "X") && (
+          <button
+            onClick={retryGame}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-lg hover:bg-yellow-500"
+          >
+            Retry
           </button>
         )}
         <button
