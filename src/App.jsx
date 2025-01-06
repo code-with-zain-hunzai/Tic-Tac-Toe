@@ -28,7 +28,6 @@ const App = () => {
   const drawSound = new Audio(drawSoundFile);
   const backgroundMusic = new Audio(backgroundMusicFile);
 
-  // Set background music to loop and play until user clicks a box
   useEffect(() => {
     if (!hasStarted) {
       backgroundMusic.loop = true;
@@ -42,7 +41,6 @@ const App = () => {
     };
   }, [hasStarted]);
 
-  // Save game state to localStorage
   const saveGameState = () => {
     const gameState = {
       boxes,
@@ -54,7 +52,6 @@ const App = () => {
     localStorage.setItem("ticTacToeGameState", JSON.stringify(gameState));
   };
 
-  // Load game state from localStorage
   const loadGameState = () => {
     const savedState = localStorage.getItem("ticTacToeGameState");
     if (savedState) {
@@ -82,6 +79,12 @@ const App = () => {
     setIsDraw(false);
   };
 
+  const startNewGame = () => {
+    resetGame();
+    setLevel(1);
+    setHasStarted(false); // Reset the hasStarted state
+  };
+
   const nextLevel = () => {
     if (level < 10) {
       setLevel(level + 1);
@@ -96,7 +99,6 @@ const App = () => {
   };
 
   const handleBoxClick = (index) => {
-    // Prevent move if box is already filled, there's a winner, or it's not player O's turn
     if (boxes[index] || winner || !turnO) return;
 
     const newBoxes = [...boxes];
@@ -106,17 +108,15 @@ const App = () => {
     checkWinner(newBoxes);
     setTurnO(false);
 
-    // Mark game as started once user clicks a box
     if (!hasStarted) setHasStarted(true);
 
-    // Allow AI move only if no winner or draw yet
     if (!winner && !isDraw) {
       setTimeout(() => makeAIMove(newBoxes), 1000);
     }
   };
 
   const makeAIMove = (newBoxes) => {
-    if (winner || isDraw) return; // Prevent AI move if game is over
+    if (winner || isDraw) return;
 
     const aiMove = randomMove(newBoxes);
     newBoxes[aiMove] = "X";
@@ -204,6 +204,12 @@ const App = () => {
           className="px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg hover:bg-gray-700"
         >
           Reset Game
+        </button>
+        <button
+          onClick={startNewGame}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-500"
+        >
+          New Game
         </button>
       </div>
     </div>
