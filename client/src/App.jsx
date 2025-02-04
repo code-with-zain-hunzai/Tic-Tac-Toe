@@ -231,32 +231,39 @@ const App = () => {
       return bestScore;
     }
   };
+
   const handleUserSubmit = async (e) => {
     e.preventDefault();
-
-    // Defensive check to ensure leaderboard is an array
-    if (!Array.isArray(leaderboard)) {
-      console.error("Leaderboard is not an array:", leaderboard);
-      alert("An unexpected error occurred. Please try again later.");
+  
+    if (!userName || !userIcon) {
+      alert("Please enter a username and select an icon.");
       return;
     }
-
-    const existingUser = leaderboard.find((player) => player.name === userName);
-    if (existingUser) {
-      alert("Username already taken. Please choose another one.");
-      return;
-    }
-
+  
     const newUser = { name: userName, icon: userIcon, level: 1 };
-    setCurrentPlayer(newUser);
-    setShowModal(false);
-
+    console.log("Sending data to backend:", newUser);
+  
     try {
-      const response = await axios.post("/api/leaderboard", newUser);
-      console.log("API Response:", response.data); // Log the response
+      const response = await axios.post("http://localhost:3001/api/leaderboard", newUser);
+      console.log("API Response:", response.data);
+      setCurrentPlayer(newUser);
+      setShowModal(false);
+      fetchLeaderboard();
+      
       fetchLeaderboard();
     } catch (error) {
       console.error("Error saving user data:", error);
+  
+      if (error.response) {
+        console.error("Error Response Data:", error.response.data);
+        console.error("Error Status Code:", error.response.status);
+        console.error("Error Headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+      } else {
+        console.error("Error setting up the request:", error.message);
+      }
+  
       if (error.response && error.response.status === 409) {
         alert("Username already exists. Please choose another one.");
       } else {
