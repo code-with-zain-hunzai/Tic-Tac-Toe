@@ -37,52 +37,42 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
-// POST /api/leaderboard: Add or update a user
+// POST /api/leaderboard - Updated to properly handle upsert
 app.post("/api/leaderboard", async (req, res) => {
   try {
-    console.log("Incoming Data:", req.body);
     const { error } = leaderboardSchema.validate(req.body);
-    if (error) {
-      console.error("Validation Error:", error.details);
-      return res.status(400).json({ error: error.details[0].message });
-    }
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
     const { name, icon, level } = req.body;
 
-    // Check if the user already exists
-    const existingUser = await prisma.leaderboard.findUnique({
+    // Upsert operation (update or create)
+    const user = await prisma.leaderboard.upsert({
       where: { name },
+      update: { level },
+      create: { name, icon, level },
     });
 
-    if (existingUser) {
-      // Update the existing user's level
-      const updatedUser = await prisma.leaderboard.update({
-        where: { name },
-        data: { level },
-      });
-      return res.status(200).json(updatedUser);
-    }
-
-    // Create a new user if they don't exist
-    const newUser = await prisma.leaderboard.create({
-      data: { name, icon, level },
-    });
-    res.status(201).json(newUser);
+    res.status(200).json(user);
   } catch (err) {
-    console.error("Server Error:", err);
+    if (err.code === 'P2002') { // Prisma unique constraint error
+      return res.status(409).json({ error: "Username already exists" });
+    }
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 
-// DELETE /api/leaderboard: Reset all leaderboard entries
-app.delete("/api/leaderboard", async (req, res) => {
+// DELETE /api/leaderboard/:name
+app.delete("/api/leaderboard/:name", async (req, res) => {
   try {
-    await prisma.leaderboard.deleteMany(); // Delete all entries
-    res.status(200).json({ message: "Leaderboard reset successfully" });
+    const { name } = req.params;
+    await prisma.leaderboard.delete({
+      where: { name },
+    });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to reset leaderboard" });
+    res.status(500).json({ error: "Failed to delete user" });
   }
 });
 
