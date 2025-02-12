@@ -14,7 +14,7 @@ const Leaderboard = ({ leaderboard }) => {
   return (
     <div className="mt-6 w-2/12">
     <h2 className="text-2xl text-white font-bold mb-4">Leaderboard</h2>
-    <div className="bg-white p-4 rounded-lg shadow-lg">
+    <div className="bg-white p-4 rounded-md shadow-lg">
       {leaderboard.map((player, index) => (
         <div key={player.name} className="flex justify-between items-center mb-2">
           <div className="flex items-center">
