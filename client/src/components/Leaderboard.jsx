@@ -21,7 +21,7 @@ const Leaderboard = ({ leaderboard }) => {
             <span className="mr-2">{player.icon}</span>
             <span className="font-semibold">{player.name}</span>
           </div>
-          <span className="bg-teal-500 text-white px-3 py-1 rounded-full">
+          <span className="bg-teal-500 text-white px-3 py-1 rounded-md">
             Level {player.level}
           </span>
         </div>
